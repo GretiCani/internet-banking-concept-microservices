@@ -1,0 +1,40 @@
+version: '3'
+
+volumes:
+  maria_db:
+      driver: local
+
+services:
+  mariadb:
+    image: mariadb:10.7.1
+    environment:
+      MYSQL_ROOT_PASSWORD: changeme
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    restart: on-failure
+    volumes:
+     - maria_db:/var/lib/mysql
+    ports:
+     - 3306:3306
+  keycloak:
+      image: jboss/keycloak
+      environment:
+        DB_VENDOR: mariadb
+        DB_ADDR: mariadb
+        DB_DATABASE: keycloak
+        DB_USER: keycloak
+        DB_SCHEMA: public
+        DB_PASSWORD: password
+        KEYCLOAK_USER: admin
+        KEYCLOAK_PASSWORD: admin
+        KEYCLOAK_IMPORT: /tmp/one.json -Dkeycloak.profile.feature.upload_scripts=enabled
+        
+      ports:
+        - 8080:8080
+      depends_on:
+        - mariadb
+      
+      volumes:
+        - "./realms:/tmp"
+
